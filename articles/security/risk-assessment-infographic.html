@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Assessment: ISO 27005 & OWASP Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+
+        .framework-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .toggle-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .toggle-btn.iso {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .toggle-btn.owasp {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .toggle-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .process-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .process-step {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-left: 6px solid #4299e1;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .process-step.owasp-style {
+            border-left-color: #48bb78;
+        }
+
+        .process-step:hover {
+            transform: translateX(10px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .process-step h3 {
+            color: #2d3748;
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .process-step p {
+            color: #4a5568;
+            margin-left: 45px;
+        }
+
+        .detail-content {
+            display: none;
+            margin-top: 15px;
+            margin-left: 45px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .detail-content.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 500px; }
+        }
+
+        .detail-content ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .detail-content li {
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+            grid-template-rows: 40px repeat(5, 80px);
+            gap: 2px;
+            margin: 30px 0;
+            background: #e2e8f0;
+            padding: 2px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .matrix-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #2d3748;
+            background: #edf2f7;
+        }
+
+        .matrix-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .matrix-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .risk-critical { background: #c53030; }
+        .risk-high { background: #dd6b20; }
+        .risk-medium { background: #d69e2e; }
+        .risk-low { background: #38a169; }
+        .risk-minimal { background: #3182ce; }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .comparison-card {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .comparison-card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .comparison-card.owasp-card h3 {
+            border-bottom-color: #48bb78;
+        }
+
+        .comparison-card ul {
+            margin-left: 20px;
+        }
+
+        .comparison-card li {
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+
+        .key-points {
+            background: linear-gradient(135deg, #fef5e7, #fdeaa6);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+            border-left: 6px solid #d69e2e;
+        }
+
+        .key-points h3 {
+            color: #744210;
+            margin-bottom: 15px;
+        }
+
+        .key-points ul {
+            margin-left: 20px;
+        }
+
+        .key-points li {
+            margin-bottom: 10px;
+            color: #744210;
+        }
+
+        .interactive-section {
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .interactive-section h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .risk-calculator {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .calc-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .calc-row label {
+            flex: 1;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .calc-row select {
+            flex: 2;
+            padding: 10px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .calc-result {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            border: 3px solid #cbd5e0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            color: #718096;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .risk-matrix {
+                font-size: 0.8em;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Information Security Risk Assessment</h1>
+        <p class="subtitle">Master ISO 27005 & OWASP Risk Management Frameworks</p>
+
+        <div class="framework-toggle">
+            <button class="toggle-btn iso active" onclick="showFramework('iso')">ISO 27005</button>
+            <button class="toggle-btn owasp" onclick="showFramework('owasp')">OWASP</button>
+            <button class="toggle-btn iso" onclick="showFramework('comparison')">Compare Both</button>
+        </div>
+
+        <!-- ISO 27005 Content -->
+        <div id="iso-content" class="content-section active">
+            <h2 style="color: #2d3748; margin-bottom: 20px; text-align: center;">ISO 27005 Risk Assessment Process</h2>
+            
+            <div class="process-flow">
+                <div class="process-step" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">1</span> Context Establishment</h3>
+                    <p>Define the scope, boundaries, and criteria for risk assessment</p>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Define scope:</strong> Which systems, processes, and information assets?</li>
+                            <li><strong>Risk criteria:</strong> Establish risk appetite and tolerance levels</li>
+                            <li><strong>Stakeholders:</strong> Identify who needs to be involved</li>
+                            <li><strong>Methodology:</strong> Choose qualitative or quantitative approach</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="process-step" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">2</span> Risk Identification</h3>
+                    <p>Identify assets, threats, vulnerabilities, and existing controls</p>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Assets:</strong> Hardware, software, data, people, facilities</li>
+                            <li><strong>Threats:</strong> Natural disasters, cyber attacks, human error</li>
+                            <li><strong>Vulnerabilities:</strong> Weaknesses that can be exploited</li>
+                            <li><strong>Existing controls:</strong> Current security measures in place</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="process-step" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">3</span> Risk Analysis</h3>
+                    <p>Assess the likelihood and impact of identified risks</p>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Likelihood assessment:</strong> How probable is the threat?</li>
+                            <li><strong>Impact assessment:</strong> What damage could occur?</li>
+                            <li><strong>Risk level calculation:</strong> Risk = Likelihood × Impact</li>
+                            <li><strong>Consider:</strong> Confidentiality, Integrity, Availability impacts</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="process-step" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">4</span> Risk Evaluation</h3>
+                    <p>Compare risks against criteria and prioritize treatment</p>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Compare:</strong> Risk level vs. risk acceptance criteria</li>
+                            <li><strong>Prioritize:</strong> Rank risks from highest to lowest</li>
+                            <li><strong>Decision:</strong> Accept, mitigate, transfer, or avoid?</li>
+                            <li><strong>Business context:</strong> Consider organizational priorities</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="process-step" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">5</span> Risk Treatment</h3>
+                    <p>Select and implement controls to modify risks</p>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Risk modification:</strong> Implement security controls</li>
+                            <li><strong>Risk retention:</strong> Accept the risk with justification</li>
+                            <li><strong>Risk avoidance:</strong> Eliminate the risk source</li>
+                            <li><strong>Risk sharing:</strong> Transfer to third party (insurance)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="process-step" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">6</span> Risk Acceptance</h3>
+                    <p>Obtain management approval for residual risks</p>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Document:</strong> All risk treatment decisions</li>
+                            <li><strong>Sign-off:</strong> Management formally accepts residual risk</li>
+                            <li><strong>Communicate:</strong> Share decisions with stakeholders</li>
+                            <li><strong>Record:</strong> Maintain risk register and treatment plan</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="key-points">
+                <h3>🔑 ISO 27005 Key Principles</h3>
+                <ul>
+                    <li><strong>Continuous process:</strong> Risk assessment is iterative and ongoing</li>
+                    <li><strong>Aligned with ISO 27001:</strong> Supports ISMS implementation</li>
+                    <li><strong>Flexible methodology:</strong> Adapt to organizational needs</li>
+                    <li><strong>Management involvement:</strong> Senior leadership must be engaged</li>
+                    <li><strong>Documentation:</strong> Maintain comprehensive records</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- OWASP Content -->
+        <div id="owasp-content" class="content-section">
+            <h2 style="color: #2d3748; margin-bottom: 20px; text-align: center;">OWASP Risk Rating Methodology</h2>
+            
+            <div class="process-flow">
+                <div class="process-step owasp-style" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">1</span> Identify Risk</h3>
+                    <p>Discover the vulnerability and understand the threat</p>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Vulnerability identification:</strong> Security testing, code review</li>
+                            <li><strong>Threat agent:</strong> Who might exploit this?</li>
+                            <li><strong>Attack vector:</strong> How can it be exploited?</li>
+                            <li><strong>Context:</strong> Application architecture and data flow</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="process-step owasp-style" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">2</span> Estimate Likelihood</h3>
+                    <p>Assess threat agent factors and vulnerability factors</p>
+                    <div class="detail-content">
+                        <strong>Threat Agent Factors:</strong>
+                        <ul>
+                            <li><strong>Skill level:</strong> How skilled is the attacker?</li>
+                            <li><strong>Motive:</strong> What's their incentive?</li>
+                            <li><strong>Opportunity:</strong> How easy is access?</li>
+                            <li><strong>Size:</strong> How large is the threat group?</li>
+                        </ul>
+                        <strong>Vulnerability Factors:</strong>
+                        <ul>
+                            <li><strong>Ease of discovery:</strong> How easy to find?</li>
+                            <li><strong>Ease of exploit:</strong> How easy to exploit?</li>
+                            <li><strong>Awareness:</strong> Is it publicly known?</li>
+                            <li><strong>Intrusion detection:</strong> Can it be detected?</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="process-step owasp-style" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">3</span> Estimate Impact</h3>
+                    <p>Evaluate technical and business impact</p>
+                    <div class="detail-content">
+                        <strong>Technical Impact:</strong>
+                        <ul>
+                            <li><strong>Loss of confidentiality:</strong> Data exposure severity</li>
+                            <li><strong>Loss of integrity:</strong> Data corruption severity</li>
+                            <li><strong>Loss of availability:</strong> System downtime severity</li>
+                            <li><strong>Loss of accountability:</strong> Audit trail damage</li>
+                        </ul>
+                        <strong>Business Impact:</strong>
+                        <ul>
+                            <li><strong>Financial damage:</strong> Direct and indirect costs</li>
+                            <li><strong>Reputation damage:</strong> Brand and trust impact</li>
+                            <li><strong>Non-compliance:</strong> Regulatory penalties</li>
+                            <li><strong>Privacy violation:</strong> Personal data breach impact</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="process-step owasp-style" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">4</span> Calculate Risk Severity</h3>
+                    <p>Combine likelihood and impact to determine overall risk</p>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Formula:</strong> Risk = Likelihood × Impact</li>
+                            <li><strong>Scale:</strong> Each factor rated 0-9</li>
+                            <li><strong>Severity levels:</strong> Note, Low, Medium, High, Critical</li>
+                            <li><strong>Customize:</strong> Adjust weights based on organization</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="process-step owasp-style" onclick="toggleDetail(this)">
+                    <h3><span class="step-number">5</span> Prioritize & Remediate</h3>
+                    <p>Decide what to fix and implement solutions</p>
+                    <div class="detail-content">
+                        <ul>
+                            <li><strong>Fix immediately:</strong> Critical and High risks</li>
+                            <li><strong>Schedule fix:</strong> Medium risks in next release</li>
+                            <li><strong>Monitor:</strong> Low risks, fix if possible</li>
+                            <li><strong>Accept:</strong> Note risks with documented justification</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="key-points">
+                <h3>🔑 OWASP Key Principles</h3>
+                <ul>
+                    <li><strong>Application-focused:</strong> Specifically for software security</li>
+                    <li><strong>Practical approach:</strong> Developer and tester friendly</li>
+                    <li><strong>Customizable:</strong> Tailor factors to your environment</li>
+                    <li><strong>Repeatable:</strong> Consistent methodology across applications</li>
+                    <li><strong>Top 10 integration:</strong> Works with OWASP Top 10 vulnerabilities</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Comparison Content -->
+        <div id="comparison-content" class="content-section">
+            <h2 style="color: #2d3748; margin-bottom: 20px; text-align: center;">ISO 27005 vs OWASP Comparison</h2>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <h3>🏢 ISO 27005</h3>
+                    <ul>
+                        <li><strong>Scope:</strong> Enterprise-wide information security</li>
+                        <li><strong>Approach:</strong> Holistic risk management framework</li>
+                        <li><strong>Focus:</strong> All information assets and processes</li>
+                        <li><strong>Best for:</strong> ISMS, compliance, governance</li>
+                        <li><strong>Methodology:</strong> Qualitative or quantitative</li>
+                        <li><strong>Audience:</strong> Security managers, executives, auditors</li>
+                        <li><strong>Integration:</strong> ISO 27001 certification</li>
+                    </ul>
+                </div>
+
+                <div class="comparison-card owasp-card">
+                    <h3>💻 OWASP</h3>
+                    <ul>
+                        <li><strong>Scope:</strong> Web application security</li>
+                        <li><strong>Approach:</strong> Specific vulnerability risk rating</li>
+                        <li><strong>Focus:</strong> Software vulnerabilities and exploits</li>
+                        <li><strong>Best for:</strong> DevSecOps, application security</li>
+                        <li><strong>Methodology:</strong> Structured scoring system (0-9)</li>
+                        <li><strong>Audience:</strong> Developers, security testers, AppSec</li>
+                        <li><strong>Integration:</strong> SDLC, OWASP Top 10, ASVS</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2 style="color: #2d3748; margin: 40px 0 20px; text-align: center;">Risk Rating Matrix</h2>
+            <p style="text-align: center; color: #718096; margin-bottom: 20px;">Click cells to see risk descriptions</p>
+            
+            <div class="risk-matrix">
+                <div class="matrix-label"></div>
+                <div class="matrix-label">Very Low (1)</div>
+                <div class="matrix-label">Low (2)</div>
+                <div class="matrix-label">Medium (3)</div>
+                <div class="matrix-label">High (4)</div>
+                <div class="matrix-label">Very High (5)</div>
+                
+                <div class="matrix-label">Very High<br>(5)</div>
+                <div class="matrix-cell risk-medium" onclick="showRiskInfo('Medium', 'Low likelihood but highest impact')">M</div>
+                <div class="matrix-cell risk-high" onclick="showRiskInfo('High', 'Moderate likelihood with highest impact')">H</div>
+                <div class="matrix-cell risk-high" onclick="showRiskInfo('High', 'Significant likelihood and impact')">H</div>
+                <div class="matrix-cell risk-critical" onclick="showRiskInfo('Critical', 'Very high likelihood and impact')">C</div>
+                <div class="matrix-cell risk-critical" onclick="showRiskInfo('Critical', 'Maximum likelihood and impact')">C</div>
+                
+                <div class="matrix-label">High<br>(4)</div>
+                <div class="matrix-cell risk-low" onclick="showRiskInfo('Low', 'Minimal likelihood, high impact')">L</div>
+                <div class="matrix-cell risk-medium" onclick="showRiskInfo('Medium', 'Low-moderate likelihood and impact')">M</div>
+                <div class="matrix-cell risk-high" onclick="showRiskInfo('High', 'Balanced moderate risk')">H</div>
+                <div class="matrix-cell risk-high" onclick="showRiskInfo('High', 'High likelihood, high impact')">H</div>
+                <div class="matrix-cell risk-critical" onclick="showRiskInfo('Critical', 'Very high likelihood, high impact')">C</div>
+                
+                <div class="matrix-label">Medium<br>(3)</div>
+                <div class="matrix-cell risk-low" onclick="showRiskInfo('Low', 'Low likelihood and impact')">L</div>
+                <div class="matrix-cell risk-low" onclick="showRiskInfo('Low', 'Low-medium combined risk')">L</div>
+                <div class="matrix-cell risk-medium" onclick="showRiskInfo('Medium', 'Moderate likelihood and impact')">M</div>
+                <div class="matrix-cell risk-medium" onclick="showRiskInfo('Medium', 'Medium-high combined risk')">M</div>
+                <div class="matrix-cell risk-high" onclick="showRiskInfo('High', 'Very high likelihood, medium impact')">H</div>
+                
+                <div class="matrix-label">Low<br>(2)</div>
+                <div class="matrix-cell risk-minimal" onclick="showRiskInfo('Minimal', 'Very low combined risk')">Min</div>
+                <div class="matrix-cell risk-low" onclick="showRiskInfo('Low', 'Low combined risk')">L</div>
+                <div class="matrix-cell risk-low" onclick="showRiskInfo('Low', 'Low-medium combined risk')">L</div>
+                <div class="matrix-cell risk-medium" onclick="showRiskInfo('Medium', 'High likelihood offsets low impact')">M</div>
+                <div class="matrix-cell risk-medium" onclick="showRiskInfo('Medium', 'Very high likelihood, low impact')">M</div>
+                
+                <div class="matrix-label">Very Low<br>(1)</div>
+                <div class="matrix-cell risk-minimal" onclick="showRiskInfo('Minimal', 'Minimal risk - lowest possible')">Min</div>
+                <div class="matrix-cell risk-minimal" onclick="showRiskInfo('Minimal', 'Very minimal risk')">Min</div>
+                <div class="matrix-cell risk-low" onclick="showRiskInfo('Low', 'Low risk situation')">L</div>
+                <div class="matrix-cell risk-low" onclick="showRiskInfo('Low', 'Low-medium risk')">L</div>
+                <div class="matrix-cell risk-medium" onclick="showRiskInfo('Medium', 'Very high likelihood compensates')">M</div>
+            </div>
+
+            <div class="key-points">
+                <h3>🎯 When to Use Which Framework</h3>
+                <ul>
+                    <li><strong>Use ISO 27005 when:</strong> Implementing ISMS, seeking certification, conducting enterprise risk assessments, managing diverse asset types</li>
+                    <li><strong>Use OWASP when:</strong> Assessing application vulnerabilities, conducting penetration tests, prioritizing security bugs, DevSecOps integration</li>
+                    <li><strong>Use both together:</strong> OWASP for tactical application security + ISO 27005 for strategic enterprise risk management</li>
+                    <li><strong>Complementary strength:</strong> OWASP findings feed into ISO 27005 risk register</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Interactive Risk Calculator -->
+        <div class="interactive-section">
+            <h3>🧮 Quick Risk Calculator (OWASP Style)</h3>
+            <div class="risk-calculator">
+                <div class="calc-row">
+                    <label>Ease of Exploit:</label>
+                    <select id="exploit">
+                        <option value="3">Very Easy (9)</option>
+                        <option value="2">Easy (7)</option>
+                        <option value="1" selected>Moderate (5)</option>
+                        <option value="0.5">Difficult (3)</option>
+                        <option value="0.2">Very Difficult (1)</option>
+                    </select>
+                </div>
+                <div class="calc-row">
+                    <label>Likelihood of Discovery:</label>
+                    <select id="discovery">
+                        <option value="3">Very Easy (9)</option>
+                        <option value="2">Easy (7)</option>
+                        <option value="1" selected>Moderate (5)</option>
+                        <option value="0.5">Difficult (3)</option>
+                        <option value="0.2">Very Difficult (1)</option>
+                    </select>
+                </div>
+                <div class="calc-row">
+                    <label>Technical Impact:</label>
+                    <select id="tech-impact">
+                        <option value="3">Complete compromise (9)</option>
+                        <option value="2">Significant impact (7)</option>
+                        <option value="1" selected>Moderate impact (5)</option>
+                        <option value="0.5">Minor impact (3)</option>
+                        <option value="0.2">Minimal impact (1)</option>
+                    </select>
+                </div>
+                <div class="calc-row">
+                    <label>Business Impact:</label>
+                    <select id="business-impact">
+                        <option value="3">Catastrophic (9)</option>
+                        <option value="2">Severe (7)</option>
+                        <option value="1" selected>Moderate (5)</option>
+                        <option value="0.5">Minor (3)</option>
+                        <option value="0.2">Negligible (1)</option>
+                    </select>
+                </div>
+                <button class="toggle-btn iso" onclick="calculateRisk()" style="width: 100%;">Calculate Risk</button>
+                <div class="calc-result" id="result">Select values and click Calculate</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Best Practices:</strong> Combine both frameworks for comprehensive security</p>
+            <p>ISO 27005 provides strategic direction • OWASP delivers tactical execution</p>
+            <p style="margin-top: 15px; font-size: 0.9em;">Click process steps to expand details • Click matrix cells for risk info</p>
+        </div>
+    </div>
+
+    <script>
+        function showFramework(framework) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active from all buttons
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            if (framework === 'iso') {
+                document.getElementById('iso-content').classList.add('active');
+                document.querySelectorAll('.toggle-btn.iso')[0].classList.add('active');
+            } else if (framework === 'owasp') {
+                document.getElementById('owasp-content').classList.add('active');
+                document.querySelector('.toggle-btn.owasp').classList.add('active');
+            } else if (framework === 'comparison') {
+                document.getElementById('comparison-content').classList.add('active');
+                document.querySelectorAll('.toggle-btn.iso')[1].classList.add('active');
+            }
+        }
+
+        function toggleDetail(element) {
+            const detail = element.querySelector('.detail-content');
+            const allDetails = document.querySelectorAll('.detail-content');
+            
+            // Close all other details
+            allDetails.forEach(d => {
+                if (d !== detail) {
+                    d.classList.remove('show');
+                }
+            });
+            
+            // Toggle current detail
+            detail.classList.toggle('show');
+        }
+
+        function showRiskInfo(level, description) {
+            alert(`Risk Level: ${level}\n\n${description}\n\nAction: ${getAction(level)}`);
+        }
+
+        function getAction(level) {
+            const actions = {
+                'Critical': 'Immediate action required. Deploy emergency response.',
+                'High': 'Urgent attention needed. Prioritize remediation.',
+                'Medium': 'Plan treatment within standard timeframe.',
+                'Low': 'Monitor and address in routine maintenance.',
+                'Minimal': 'Accept or monitor. Low priority for action.'
+            };
+            return actions[level] || 'Assess and determine appropriate action.';
+        }
+
+        function calculateRisk() {
+            const exploit = parseFloat(document.getElementById('exploit').value);
+            const discovery = parseFloat(document.getElementById('discovery').value);
+            const techImpact = parseFloat(document.getElementById('tech-impact').value);
+            const businessImpact = parseFloat(document.getElementById('business-impact').value);
+            
+            const likelihood = (exploit + discovery) / 2;
+            const impact = (techImpact + businessImpact) / 2;
+            const risk = likelihood * impact;
+            
+            let severity, color, action;
+            if (risk >= 6) {
+                severity = 'CRITICAL';
+                color = '#c53030';
+                action = 'Fix immediately! Deploy emergency patch.';
+            } else if (risk >= 4) {
+                severity = 'HIGH';
+                color = '#dd6b20';
+                action = 'Schedule urgent fix in next sprint.';
+            } else if (risk >= 2) {
+                severity = 'MEDIUM';
+                color = '#d69e2e';
+                action = 'Plan remediation in upcoming release.';
+            } else if (risk >= 1) {
+                severity = 'LOW';
+                color = '#38a169';
+                action = 'Address in routine maintenance cycle.';
+            } else {
+                severity = 'MINIMAL';
+                color = '#3182ce';
+                action = 'Monitor or accept with documentation.';
+            }
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                Risk Score: <span style="color: ${color}">${risk.toFixed(2)}</span><br>
+                Severity: <span style="color: ${color}">${severity}</span><br>
+                <span style="font-size: 0.9em; font-weight: normal;">${action}</span>
+            `;
+            resultDiv.style.borderColor = color;
+        }
+    </script>
+</body>
+</html>
